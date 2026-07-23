@@ -188,4 +188,4 @@ See the LICENSE file for details.
 
 [GitHub](https://github.com/)
 
-[Cloudflare](https://cludflare.com/)
+[Cloudflare](https://cloudflare.com/)
