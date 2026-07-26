@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ultimate AI Lite - v2.0</title>
 
-    <!-- Markdown & Sanitization (ES5 Compatible Loaders) -->
+    <!-- Markdown & Sanitization -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/core.min.js"></script>
     <link id="hljs-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/github-dark.min.css">
     
     <style>
-        /* CSS Variables for Dynamic Theming (Fallback to existing hardcoded styles handled via overriding below) */
         :root {
             --bg-color: #212121;
             --surface-color: #171717;
@@ -28,132 +27,89 @@
             --primary-text: #000000;
             --msg-ai: #171717;
             --msg-user: #2f2f2f;
+            --avatar-blue: #2563EB;
         }
 
-        [data-theme="light"] {
-            --bg-color: #f5f5f5;
-            --surface-color: #ffffff;
-            --surface-hover: #e0e0e0;
-            --border-color: #dddddd;
-            --border-light: #cccccc;
-            --text-main: #222222;
-            --text-muted: #555555;
-            --text-dark: #888888;
-            --btn-bg: #e0e0e0;
-            --btn-text: #333333;
-            --primary-bg: #000000;
-            --primary-text: #ffffff;
-            --msg-ai: #ffffff;
-            --msg-user: #e3f2fd;
-        }
-
-        /* EXISTING STYLES (Preserved exactly as requested, but mapped to CSS vars where seamless) */
         * {
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-transition: none !important;
             transition: none !important;
-            -webkit-animation: none !important;
             animation: none !important;
         }
 
         body {
-            background-color: var(--bg-color, #212121);
-            color: var(--text-main, #ececec);
+            background-color: var(--bg-color);
+            color: var(--text-main);
             font-family: Arial, sans-serif;
             font-size: 14px;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Login Lock Screen */
+        /* Bypass Login Overlay */
         #login-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--surface-color, #171717);
-            z-index: 100;
-            padding: 30px 20px;
-            text-align: center;
-        }
-
-        .login-box {
-            max-width: 300px;
-            margin: 40px auto 0 auto;
-            background-color: var(--bg-color, #212121);
-            padding: 20px;
-            border: 1px solid var(--border-light, #444444);
-        }
-
-        .login-box input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 12px;
-            background-color: var(--surface-color, #171717);
-            border: 1px solid var(--border-light, #444444);
-            color: var(--text-main, #ffffff);
-        }
-
-        .login-box button {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--primary-bg, #ffffff);
-            color: var(--primary-text, #000000);
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
+            display: none;
         }
 
         /* Navigation Header */
         #header {
             height: 48px;
-            background-color: var(--surface-color, #171717);
-            border-bottom: 1px solid var(--border-color, #333333);
-            padding: 0 8px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 12px;
             line-height: 48px;
             position: absolute;
             top: 0; left: 0; right: 0;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .nav-btn {
-            background-color: var(--btn-bg, #2f2f2f);
-            color: var(--btn-text, #cccccc);
-            border: 1px solid var(--border-light, #444444);
-            padding: 4px 8px;
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--border-light);
+            padding: 5px 10px;
             font-size: 12px;
-            margin-top: 10px;
             cursor: pointer;
         }
 
         #header h1 {
             font-size: 14px;
-            display: inline-block;
-            margin-left: 6px;
-            color: var(--text-main, #ffffff);
+            color: var(--text-main);
         }
 
-        /* Sidebar for Multi-Chat */
+        /* Sidebar Overlay Drawer / Collapsible */
         #sidebar {
             display: none;
             position: absolute;
             top: 48px; left: 0; bottom: 0;
-            width: 220px;
-            background-color: var(--surface-color, #171717);
-            border-right: 1px solid var(--border-color, #333333);
+            width: 280px;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
             z-index: 20;
-            padding: 10px;
+            padding: 12px;
+            overflow-y: auto;
+            flex-direction: column;
+        }
+
+        #sidebar.open {
+            display: flex;
+        }
+
+        .sidebar-content {
+            flex: 1;
             overflow-y: auto;
         }
 
         .chat-item {
             padding: 8px;
-            background-color: var(--bg-color, #212121);
-            border: 1px solid var(--border-color, #333333);
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
             margin-bottom: 6px;
-            color: var(--text-muted, #aaaaaa);
+            color: var(--text-muted);
             cursor: pointer;
             font-size: 12px;
             word-break: break-all;
@@ -161,49 +117,107 @@
         }
 
         .chat-item.active {
-            border-color: var(--text-main, #ffffff);
-            color: var(--text-main, #ffffff);
+            border-color: var(--text-main);
+            color: var(--text-main);
             font-weight: bold;
         }
 
-        /* Settings Panel */
-        #settings-panel {
-            display: none;
-            position: absolute;
-            top: 48px; left: 0; right: 0; bottom: 0;
-            background-color: var(--surface-color, #171717);
-            border-bottom: 1px solid var(--border-color, #333333);
-            padding: 12px;
-            z-index: 15;
-            overflow-y: auto;
-        }
-
         .input-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .input-group label {
             display: block;
             font-size: 11px;
-            color: var(--text-muted, #aaaaaa);
+            color: var(--text-muted);
             margin-bottom: 2px;
         }
 
-        .input-group input, .input-group select {
+        .input-group input, .input-group select, .input-group textarea {
             width: 100%;
             padding: 6px;
-            background-color: var(--bg-color, #212121);
-            border: 1px solid var(--border-light, #444444);
-            color: var(--text-main, #ffffff);
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
             font-size: 12px;
+            font-family: inherit;
         }
 
         .section-title {
-            font-size: 12px;
-            color: var(--text-main, #ffffff);
-            margin: 12px 0 6px 0;
-            border-bottom: 1px solid var(--border-color, #333333);
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            margin: 14px 0 6px 0;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 4px;
+        }
+
+        .menu-link {
+            display: block;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-decoration: none;
+        }
+        .menu-link:hover {
+            color: var(--text-main);
+            text-decoration: underline;
+        }
+
+        /* Profile Section in Sidebar */
+        #profile-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--avatar-blue);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .profile-name {
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: bold;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Profile / Settings Drawer Modal */
+        #profile-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 50;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-box {
+            max-width: 480px;
+            margin: 30px auto;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-light);
+            padding: 16px;
         }
 
         /* Chat Display */
@@ -211,7 +225,6 @@
             position: absolute;
             top: 48px; bottom: 70px; left: 0; right: 0;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
             padding: 10px;
         }
 
@@ -229,22 +242,22 @@
 
         .user-message {
             float: right;
-            background-color: var(--msg-user, #2f2f2f);
-            color: var(--text-main, #ffffff);
-            border: 1px solid var(--border-light, #444444);
+            background-color: var(--msg-user);
+            color: var(--text-main);
+            border: 1px solid var(--border-light);
         }
 
         .ai-message {
             float: left;
-            background-color: var(--msg-ai, #171717);
-            color: var(--text-main, #d1d5db);
-            border: 1px solid var(--border-color, #333333);
+            background-color: var(--msg-ai);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
             width: 100%;
         }
 
         .sender-name {
             font-size: 10px;
-            color: var(--text-dark, #888888);
+            color: var(--text-dark);
             margin-bottom: 4px;
             display: block;
         }
@@ -254,14 +267,14 @@
             position: absolute;
             bottom: 0; left: 0; right: 0;
             height: 70px;
-            background-color: var(--surface-color, #171717);
-            border-top: 1px solid var(--border-color, #333333);
+            background-color: var(--surface-color);
+            border-top: 1px solid var(--border-color);
             padding: 6px;
         }
 
         #file-preview {
             font-size: 10px;
-            color: var(--text-dark, #888888);
+            color: var(--text-dark);
             margin-bottom: 4px;
             height: 14px;
             overflow: hidden;
@@ -272,9 +285,9 @@
         #prompt-input {
             width: 65%;
             height: 38px;
-            background-color: var(--bg-color, #212121);
-            border: 1px solid var(--border-light, #444444);
-            color: var(--text-main, #ffffff);
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
             padding: 6px;
             font-size: 13px;
             float: left;
@@ -285,9 +298,9 @@
             height: 38px;
             float: left;
             margin-left: 1%;
-            background-color: var(--btn-bg, #2f2f2f);
-            color: var(--btn-text, #ffffff);
-            border: 1px solid var(--border-light, #444444);
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--border-light);
             text-align: center;
             line-height: 38px;
             font-size: 16px;
@@ -298,15 +311,14 @@
             width: 20%;
             height: 38px;
             float: right;
-            background-color: var(--primary-bg, #ffffff);
-            color: var(--primary-text, #000000);
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
             border: none;
             font-weight: bold;
             font-size: 12px;
             cursor: pointer;
         }
 
-        /* EXTENDED FEATURE STYLES (No existing elements modified) */
         .chat-action-btn {
             position: absolute;
             right: 4px;
@@ -325,10 +337,7 @@
             background-color: var(--bg-color); border: 1px solid var(--border-light);
             color: var(--text-main); font-size: 11px;
         }
-        .menu-link { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 6px; text-decoration: none; }
-        .menu-link:hover { color: var(--text-main); text-decoration: underline; }
-        
-        /* Markdown Renderer Styles */
+
         .ai-message p { margin-bottom: 8px; }
         .ai-message pre { 
             background-color: #0d1117; color: #c9d1d9; padding: 10px; 
@@ -347,94 +356,95 @@
             border: none; padding: 4px 6px; font-size: 9px; cursor: pointer;
         }
         .drag-active { border: 2px dashed #ffffff !important; opacity: 0.8; }
+        
+        .about-info-item {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .about-info-item strong {
+            color: var(--text-main);
+        }
     </style>
 </head>
 <body>
 
-    <!-- Login Lock Screen (Preserved HTML, Bypassed via JS completely) -->
-    <div id="login-overlay">
-        <h2>Qwen AI Login</h2>
-        <p style="font-size:11px; color:#888888; margin-top:4px;">Enter credentials to unlock app</p>
-        <div class="login-box">
-            <input type="text" id="login-user" placeholder="Username (Default: admin)">
-            <input type="password" id="login-pass" placeholder="Password (Default: 1234)">
-            <button onclick="checkLogin()">Login / Unlock</button>
-        </div>
-    </div>
-
     <!-- Header Navigation -->
     <div id="header">
-        <button class="nav-btn" onclick="toggleSidebar()">☰ Chats</button>
+        <button class="nav-btn" onclick="toggleSidebar()">☰ Menu</button>
         <h1>Ultimate AI Lite</h1>
-        <button class="nav-btn" style="float:right;" onclick="toggleSettings()">Settings</button>
+        <div></div>
     </div>
 
-    <!-- Sidebar (Multi-Chat List & Export/Import) -->
+    <!-- Sidebar Drawer Menu -->
     <div id="sidebar">
-        <!-- New Search Bar -->
-        <input type="text" id="search-chats-input" placeholder="Search chats..." onkeyup="filterChats()">
-        
-        <button class="nav-btn" style="width:100%; margin-bottom:10px;" onclick="createNewChat()">+ New Chat</button>
-        <div id="chat-list"></div>
+        <div class="sidebar-content">
+            <button class="nav-btn" style="width:100%; margin-bottom:10px; font-weight:bold;" onclick="createNewChat()">+ New Chat</button>
 
-        <div class="section-title">Chat File Backup</div>
-        <button class="nav-btn" style="width:100%; margin-bottom:6px;" onclick="exportChatsToFile()">Export Chats to File</button>
-        <label class="nav-btn" style="display:block; text-align:center; width:100%; cursor:pointer; margin-bottom:6px;">
-            Import Chats from File
-            <!-- Added multiple to support batch restoration if needed -->
-            <input type="file" id="import-chat-file" style="display:none;" accept=".json" onchange="importChatsFromFile(event)" />
-        </label>
-        <button class="nav-btn" style="width:100%; margin-bottom:10px; color: #ff6b6b; border-color: #ff6b6b;" onclick="clearAllChats()">Clear All Chats</button>
+            <div class="section-title">Chats</div>
+            <input type="text" id="search-chats-input" placeholder="Search chats..." onkeyup="filterChats()">
+            <div id="chat-list"></div>
 
-        <div class="section-title">Project Menu</div>
-        <a href="https://github.com/rakibul5879/ultimate-ai-lite" target="_blank" class="menu-link">🔗 GitHub Repository</a>
-        <a href="https://github.com/rakibul5879/ultimate-ai-lite/wiki" target="_blank" class="menu-link">📖 Documentation</a>
-        <a href="https://github.com/rakibul5879/ultimate-ai-lite/issues" target="_blank" class="menu-link">🐛 Report Issues</a>
-        <a href="https://github.com/rakibul5879/ultimate-ai-lite/discussions" target="_blank" class="menu-link">💬 Discussions</a>
-        <a href="https://github.com/rakibul5879/ultimate-ai-lite/blob/main/CONTRIBUTING.md" target="_blank" class="menu-link">🤝 Contribute</a>
-        <a href="#" class="menu-link">ℹ️ About (v2.0)</a>
+            <div class="section-title">Data Actions</div>
+            <label class="nav-btn" style="display:block; text-align:center; width:100%; cursor:pointer; margin-bottom:6px;">
+                Import Chats
+                <input type="file" id="import-chat-file" style="display:none;" accept=".json" onchange="importChatsFromFile(event)" />
+            </label>
+            <button class="nav-btn" style="width:100%; margin-bottom:6px;" onclick="exportChatsToFile()">Export Chats</button>
+            <button class="nav-btn" style="width:100%; margin-bottom:6px;" onclick="exportChatsToFile()">Backup Chats</button>
+            <label class="nav-btn" style="display:block; text-align:center; width:100%; cursor:pointer; margin-bottom:6px;">
+                Restore Chats
+                <input type="file" id="restore-chat-file" style="display:none;" accept=".json" onchange="importChatsFromFile(event)" />
+            </label>
+            <button class="nav-btn" style="width:100%; margin-bottom:10px; color: #ff6b6b; border-color: #ff6b6b;" onclick="clearAllChats()">Clear All Chats</button>
+
+            <div class="section-title">Memory</div>
+            <button class="nav-btn" style="width:100%; margin-bottom:10px;" onclick="openProfileModal('memory')">🧠 Manage Memory</button>
+
+            <div class="section-title">AI Configuration</div>
+            <div class="input-group">
+                <label for="api-model-setting">Model:</label>
+                <input type="text" id="api-model-setting" placeholder="openrouter/free" onchange="saveSettings()">
+            </div>
+            <div class="input-group">
+                <label for="api-temp-setting">Temperature (0.0 - 2.0):</label>
+                <input type="number" id="api-temp-setting" step="0.1" value="0.7" onchange="saveSettings()">
+            </div>
+            <div class="input-group">
+                <label for="api-tokens-setting">Max Tokens:</label>
+                <input type="number" id="api-tokens-setting" value="2000" onchange="saveSettings()">
+            </div>
+            <div class="input-group">
+                <label for="api-worker-setting">Worker URL:</label>
+                <input type="text" id="api-worker-setting" placeholder="Worker URL" onchange="saveSettings()">
+            </div>
+
+            <div class="section-title">About Ultimate AI Lite</div>
+            <a href="https://github.com/rakibul5879/ultimate-ai-lite" target="_blank" class="menu-link">🔗 GitHub Repository</a>
+            <a href="https://github.com/rakibul5879/ultimate-ai-lite/wiki" target="_blank" class="menu-link">📖 Documentation</a>
+            <a href="https://github.com/rakibul5879/ultimate-ai-lite/blob/main/CONTRIBUTING.md" target="_blank" class="menu-link">🤝 Contribute</a>
+            <a href="https://github.com/sponsors/rakibul5879" target="_blank" class="menu-link">💖 Sponsor</a>
+            <div class="about-info-item"><strong>Version:</strong> v2.0</div>
+            <div class="about-info-item"><strong>Creator:</strong> Rakibul5879</div>
+            <div class="about-info-item"><strong>License:</strong> MIT</div>
+            <div class="about-info-item"><strong>Backend:</strong> Cloudflare Worker</div>
+            <div class="about-info-item"><strong>Provider:</strong> OpenRouter</div>
+            <div class="about-info-item"><strong>Compatibility:</strong> Modern & Mobile Browsers</div>
+        </div>
+
+        <!-- Profile Drawer Footer -->
+        <div id="profile-section" onclick="openProfileModal('profile')">
+            <div class="avatar" id="sidebar-avatar">R</div>
+            <div class="profile-name" id="sidebar-username">Rakibul</div>
+        </div>
     </div>
 
-    <!-- Settings Panel -->
-    <div id="settings-panel">
-        <div class="section-title">Theme Preference</div>
-        <div class="input-group">
-            <select id="app-theme-setting" onchange="saveSettings()">
-                <option value="dark">Dark Mode</option>
-                <option value="light">Light Mode</option>
-                <option value="system">System Default</option>
-            </select>
+    <!-- Profile & Memory Management Modal -->
+    <div id="profile-modal">
+        <div class="modal-box">
+            <div id="profile-modal-content"></div>
+            <button class="nav-btn" style="width:100%; margin-top:14px;" onclick="closeProfileModal()">Close</button>
         </div>
-
-        <div class="section-title">OpenRouter / AI Configuration</div>
-        <div class="input-group">
-            <label for="api-model-setting">Model:</label>
-            <input type="text" id="api-model-setting" placeholder="openrouter/free" onchange="saveSettings()">
-        </div>
-        <div class="input-group">
-            <label for="api-temp-setting">Temperature (0.0 - 2.0):</label>
-            <input type="number" id="api-temp-setting" step="0.1" value="0.7" onchange="saveSettings()">
-        </div>
-        <div class="input-group">
-            <label for="api-tokens-setting">Max Tokens:</label>
-            <input type="number" id="api-tokens-setting" value="2000" onchange="saveSettings()">
-        </div>
-        <div class="input-group">
-            <label for="api-worker-setting">Worker URL:</label>
-            <input type="text" id="api-worker-setting" placeholder="Default Worker URL" onchange="saveSettings()">
-        </div>
-        
-        <div class="section-title" style="display:none;">Account Security</div>
-        <div class="input-group" style="display:none;">
-            <label for="app-user-setting">App Username:</label>
-            <input type="text" id="app-user-setting" onchange="saveSettings()">
-        </div>
-        <div class="input-group" style="display:none;">
-            <label for="app-pass-setting">App Password:</label>
-            <input type="password" id="app-pass-setting" onchange="saveSettings()">
-        </div>
-
-        <button class="nav-btn" style="width:100%; margin-top:10px;" onclick="toggleSettings()">Close Settings</button>
     </div>
 
     <!-- Chat Messages Scroll Container -->
@@ -455,39 +465,172 @@
         // ==========================================
         var activeChatId = null;
         var allChats = {};
-        var attachedFiles = []; // Upgraded to array for multiple files
-        var hasUnsavedChanges = false; // Exit warning tracker
+        var attachedFiles = [];
+        var hasUnsavedChanges = false;
+        var userMemory = {
+            name: "Rakibul",
+            preferences: "Dark mode, Clean code",
+            projects: "Ultimate AI Lite",
+            notes: ""
+        };
 
         // ==========================================
         // INITIALIZATION
         // ==========================================
         window.onload = function() {
-            // Bypass login entirely as requested, without removing HTML
-            document.getElementById('login-overlay').style.display = 'none';
-
-            // Load saved settings
-            document.getElementById('app-user-setting').value = localStorage.getItem('app_user') || 'admin';
-            document.getElementById('app-pass-setting').value = localStorage.getItem('app_pass') || '1234';
+            // Load Settings
             document.getElementById('api-model-setting').value = localStorage.getItem('api_model') || 'openrouter/free';
             document.getElementById('api-temp-setting').value = localStorage.getItem('api_temp') || '0.7';
             document.getElementById('api-tokens-setting').value = localStorage.getItem('api_tokens') || '2000';
             document.getElementById('api-worker-setting').value = localStorage.getItem('api_worker') || 'https://ultimate-ai-worker.rakibul-islam-rakib5879.workers.dev';
-            
-            var savedTheme = localStorage.getItem('app_theme') || 'dark';
-            document.getElementById('app-theme-setting').value = savedTheme;
-            applyTheme(savedTheme);
+
+            // Load Profile & Memory
+            loadProfileAndMemory();
 
             loadChatsFromStorage();
             setupDragAndDrop();
         };
 
-        // Preserve required login function per constraints (but it is dead code now)
-        function checkLogin() {
-            document.getElementById('login-overlay').style.display = 'none';
+        // ==========================================
+        // PROFILE & MEMORY MANAGEMENT
+        // ==========================================
+        function loadProfileAndMemory() {
+            var storedName = localStorage.getItem('app_user_display_name') || 'Rakibul';
+            var storedMem = localStorage.getItem('ultimate_ai_memory');
+
+            if (storedMem) {
+                try { userMemory = JSON.parse(storedMem); } catch(e) {}
+            }
+            if (!userMemory.name) userMemory.name = storedName;
+
+            updateProfileUI();
+        }
+
+        function updateProfileUI() {
+            var name = userMemory.name || 'User';
+            document.getElementById('sidebar-username').innerText = name;
+            var initial = name.trim().charAt(0).toUpperCase() || 'U';
+            document.getElementById('sidebar-avatar').innerText = initial;
+        }
+
+        function saveMemoryToStorage() {
+            localStorage.setItem('ultimate_ai_memory', JSON.stringify(userMemory));
+            localStorage.setItem('app_user_display_name', userMemory.name || 'User');
+            updateProfileUI();
+        }
+
+        function openProfileModal(view) {
+            var container = document.getElementById('profile-modal-content');
+            container.innerHTML = '';
+
+            if (view === 'profile') {
+                container.innerHTML = 
+                    '<div class="section-title" style="margin-top:0;">Profile</div>' +
+                    '<div class="input-group">' +
+                        '<label>Display Name:</label>' +
+                        '<input type="text" id="modal-display-name" value="' + (userMemory.name || '') + '">' +
+                    '</div>' +
+                    '<button class="nav-btn" style="width:100%; margin-bottom:12px;" onclick="saveProfileName()">Save Profile</button>' +
+                    '<div class="section-title">Memory Options</div>' +
+                    '<button class="nav-btn" style="width:100%; margin-bottom:6px;" onclick="openProfileModal(\'memory\')">Edit Memory</button>' +
+                    '<button class="nav-btn" style="width:100%; margin-bottom:6px;" onclick="exportMemoryToFile()">Export Memory</button>' +
+                    '<label class="nav-btn" style="display:block; text-align:center; width:100%; cursor:pointer; margin-bottom:6px;">' +
+                        'Import Memory' +
+                        '<input type="file" id="import-memory-file" style="display:none;" accept=".json" onchange="importMemoryFromFile(event)" />' +
+                    '</label>' +
+                    '<button class="nav-btn" style="width:100%; color:#ff6b6b; border-color:#ff6b6b;" onclick="clearMemory()">Clear Memory</button>';
+            } else if (view === 'memory') {
+                container.innerHTML = 
+                    '<div class="section-title" style="margin-top:0;">Memory Management</div>' +
+                    '<div class="input-group">' +
+                        '<label>Name:</label>' +
+                        '<input type="text" id="mem-name" value="' + (userMemory.name || '') + '">' +
+                    '</div>' +
+                    '<div class="input-group">' +
+                        '<label>Preferences:</label>' +
+                        '<textarea id="mem-pref" rows="2">' + (userMemory.preferences || '') + '</textarea>' +
+                    '</div>' +
+                    '<div class="input-group">' +
+                        '<label>Current Projects:</label>' +
+                        '<textarea id="mem-proj" rows="2">' + (userMemory.projects || '') + '</textarea>' +
+                    '</div>' +
+                    '<div class="input-group">' +
+                        '<label>Notes / Other Info:</label>' +
+                        '<textarea id="mem-notes" rows="3">' + (userMemory.notes || '') + '</textarea>' +
+                    '</div>' +
+                    '<button class="nav-btn" style="width:100%; margin-bottom:6px;" onclick="saveMemoryFromForm()">Save Memory</button>' +
+                    '<button class="nav-btn" style="width:100%; color:#ff6b6b; border-color:#ff6b6b;" onclick="clearMemory()">Clear Memory</button>';
+            }
+
+            document.getElementById('profile-modal').style.display = 'block';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').style.display = 'none';
+        }
+
+        function saveProfileName() {
+            var val = document.getElementById('modal-display-name').value;
+            userMemory.name = val;
+            saveMemoryToStorage();
+            closeProfileModal();
+        }
+
+        function saveMemoryFromForm() {
+            userMemory.name = document.getElementById('mem-name').value;
+            userMemory.preferences = document.getElementById('mem-pref').value;
+            userMemory.projects = document.getElementById('mem-proj').value;
+            userMemory.notes = document.getElementById('mem-notes').value;
+            saveMemoryToStorage();
+            alert("Memory saved successfully!");
+            closeProfileModal();
+        }
+
+        function exportMemoryToFile() {
+            var jsonString = JSON.stringify(userMemory, null, 2);
+            var blob = new Blob([jsonString], { type: "application/json" });
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "ultimate_ai_memory_" + new Date().toISOString().substring(0, 10) + ".json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importMemoryFromFile(evt) {
+            var file = evt.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var imported = JSON.parse(e.target.result);
+                    if (typeof imported === 'object') {
+                        userMemory = imported;
+                        saveMemoryToStorage();
+                        alert('Memory imported successfully!');
+                        closeProfileModal();
+                    } else {
+                        alert('Invalid memory file format.');
+                    }
+                } catch(err) {
+                    alert('Failed to parse memory file.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearMemory() {
+            if (confirm("Are you sure you want to clear all stored memories?")) {
+                userMemory = { name: "Rakibul", preferences: "", projects: "", notes: "" };
+                saveMemoryToStorage();
+                alert("Memory cleared!");
+                closeProfileModal();
+            }
         }
 
         // ==========================================
-        // EXIT WARNING (beforeunload)
+        // EXIT WARNING & SETTINGS
         // ==========================================
         window.onbeforeunload = function(e) {
             if (hasUnsavedChanges) {
@@ -497,65 +640,41 @@
             }
         };
 
-        // ==========================================
-        // SETTINGS & THEME
-        // ==========================================
         function saveSettings() {
-            localStorage.setItem('app_user', document.getElementById('app-user-setting').value || 'admin');
-            localStorage.setItem('app_pass', document.getElementById('app-pass-setting').value || '1234');
             localStorage.setItem('api_model', document.getElementById('api-model-setting').value || 'openrouter/free');
             localStorage.setItem('api_temp', document.getElementById('api-temp-setting').value || '0.7');
             localStorage.setItem('api_tokens', document.getElementById('api-tokens-setting').value || '2000');
             localStorage.setItem('api_worker', document.getElementById('api-worker-setting').value || '');
-            
-            var theme = document.getElementById('app-theme-setting').value;
-            localStorage.setItem('app_theme', theme);
-            applyTheme(theme);
-        }
-
-        function applyTheme(themeName) {
-            if (themeName === 'system') {
-                var isLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-                document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', themeName);
-            }
         }
 
         // ==========================================
-        // UI TOGGLES
+        // SIDEBAR TOGGLE
         // ==========================================
         function toggleSidebar() {
             var sb = document.getElementById('sidebar');
-            sb.style.display = (sb.style.display === 'block') ? 'none' : 'block';
-        }
-
-        function toggleSettings() {
-            var st = document.getElementById('settings-panel');
-            st.style.display = (st.style.display === 'block') ? 'none' : 'block';
+            sb.classList.toggle('open');
         }
 
         // ==========================================
         // CHAT STORAGE & MANAGEMENT
         // ==========================================
         function loadChatsFromStorage() {
-            var raw = localStorage.getItem('qwen_chat_data');
+            var raw = localStorage.getItem('ultimate_ai_chat_data') || localStorage.getItem('qwen_chat_data');
             if (raw) {
                 try { allChats = JSON.parse(raw); } catch(e) { allChats = {}; }
             }
-            var keys = [];
-            for (var k in allChats) { keys.push(k); }
+            var keys = Object.keys(allChats);
 
             if (keys.length === 0) {
                 createNewChat();
             } else {
                 renderChatList();
-                switchChat(keys[keys.length - 1]); // Open most recent
+                switchChat(keys[keys.length - 1]);
             }
         }
 
         function saveChatsToStorage() {
-            localStorage.setItem('qwen_chat_data', JSON.stringify(allChats));
+            localStorage.setItem('ultimate_ai_chat_data', JSON.stringify(allChats));
             hasUnsavedChanges = true;
         }
 
@@ -569,8 +688,7 @@
             renderChatList();
             switchChat(id);
             
-            // Auto close sidebar on mobile after creation
-            if (window.innerWidth < 768 && document.getElementById('sidebar').style.display === 'block') {
+            if (window.innerWidth < 768 && document.getElementById('sidebar').classList.contains('open')) {
                 toggleSidebar();
             }
         }
@@ -580,14 +698,11 @@
             activeChatId = id;
             renderChatList();
             renderMessages();
-            if (window.innerWidth < 768 && document.getElementById('sidebar').style.display === 'block') {
+            if (window.innerWidth < 768 && document.getElementById('sidebar').classList.contains('open')) {
                 toggleSidebar();
             }
         }
 
-        // ==========================================
-        // SIDEBAR ACTIONS (Rename, Delete, Clear, Search)
-        // ==========================================
         function deleteChat(id, event) {
             event.stopPropagation();
             if (confirm("Delete this chat?")) {
@@ -610,7 +725,7 @@
         }
 
         function clearAllChats() {
-            if (confirm("Are you sure you want to clear ALL chats? This cannot be undone!")) {
+            if (confirm("Are you sure you want to clear ALL chats?")) {
                 allChats = {};
                 saveChatsToStorage();
                 createNewChat();
@@ -630,7 +745,6 @@
             var listEl = document.getElementById('chat-list');
             listEl.innerHTML = '';
             
-            // Sort by newest first based on ID timestamp logic
             var keys = Object.keys(allChats).sort(function(a, b) { return b.replace('chat_', '') - a.replace('chat_', ''); });
 
             for (var i = 0; i < keys.length; i++) {
@@ -643,13 +757,11 @@
                 titleSpan.innerText = allChats[id].title;
                 div.appendChild(titleSpan);
 
-                // Add Rename Button
                 var renBtn = document.createElement('button');
                 renBtn.className = 'chat-action-btn del-btn';
                 renBtn.innerText = '✎';
                 renBtn.onclick = (function(chatId) { return function(e) { renameChat(chatId, e); }; })(id);
                 
-                // Add Delete Button
                 var delBtn = document.createElement('button');
                 delBtn.className = 'chat-action-btn';
                 delBtn.innerText = '×';
@@ -666,7 +778,7 @@
         }
 
         // ==========================================
-        // MESSAGE RENDERING (Markdown + Purify)
+        // MESSAGE RENDERING
         // ==========================================
         function renderMessages() {
             var container = document.getElementById('chat-container');
@@ -691,7 +803,6 @@
                 });
                 return DOMPurify.sanitize(marked.parse(text));
             }
-            // Fallback for missing CDN
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
         }
 
@@ -706,14 +817,13 @@
 
             var sender = document.createElement('span');
             sender.className = 'sender-name';
-            sender.innerText = (role === 'user' ? 'You' : 'Ultimate AI');
+            sender.innerText = (role === 'user' ? (userMemory.name || 'You') : 'Ultimate AI');
 
             var contentDiv = document.createElement('div');
             
             if (typeof content === 'string') {
                 if (role === 'assistant') {
                     contentDiv.innerHTML = renderMarkdown(content);
-                    // Add copy buttons to code blocks
                     var preBlocks = contentDiv.querySelectorAll('pre');
                     for (var b = 0; b < preBlocks.length; b++) {
                         var cBtn = document.createElement('button');
@@ -732,7 +842,6 @@
                     contentDiv.innerText = content;
                 }
             } else if (typeof content === 'object') {
-                // Object mapping fallback
                 var textParts = [];
                 for (var j = 0; j < content.length; j++) {
                     if (content[j].type === 'text') textParts.push(content[j].text);
@@ -761,7 +870,7 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            hasUnsavedChanges = false; // Reset warning flag
+            hasUnsavedChanges = false;
         }
 
         function importChatsFromFile(evt) {
@@ -773,7 +882,6 @@
                 try {
                     var imported = JSON.parse(e.target.result);
                     if (typeof imported === 'object') {
-                        // Merge or overwrite (here we merge)
                         for (var k in imported) { allChats[k] = imported[k]; }
                         saveChatsToStorage();
                         loadChatsFromStorage();
@@ -789,7 +897,7 @@
         }
 
         // ==========================================
-        // FILE SUPPORT (Multiple & Drag/Drop)
+        // FILE SUPPORT
         // ==========================================
         function setupDragAndDrop() {
             var body = document.body;
@@ -856,27 +964,48 @@
         }
 
         // ==========================================
-        // SYSTEM PROMPT & IDENTITY INJECTION
+        // DYNAMIC AI IDENTITY & MEMORY SYSTEM PROMPT
         // ==========================================
         function generateSystemInstruction() {
-            var modelStr = (document.getElementById('api-model-setting').value || 'openrouter/free').toLowerCase();
-            var identity = "You are an advanced AI assistant.";
+            var selectedModel = (document.getElementById('api-model-setting').value || 'openrouter/free').toLowerCase();
             
-            if (modelStr.indexOf('openai') !== -1 || modelStr.indexOf('chatgpt') !== -1) identity = "You are ChatGPT, a large language model developed by OpenAI.";
-            else if (modelStr.indexOf('anthropic') !== -1 || modelStr.indexOf('claude') !== -1) identity = "You are Claude, a large language model developed by Anthropic.";
-            else if (modelStr.indexOf('google') !== -1 || modelStr.indexOf('gemini') !== -1) identity = "You are Gemini, a large language model developed by Google.";
-            else if (modelStr.indexOf('meta') !== -1 || modelStr.indexOf('llama') !== -1) identity = "You are Llama, a large language model developed by Meta.";
-            else if (modelStr.indexOf('qwen') !== -1 || modelStr.indexOf('alibaba') !== -1) identity = "You are Qwen, a large language model developed by Alibaba Cloud.";
-            else if (modelStr.indexOf('deepseek') !== -1) identity = "You are DeepSeek, a large language model developed by DeepSeek.";
-            else if (modelStr.indexOf('microsoft') !== -1 || modelStr.indexOf('phi') !== -1) identity = "You are Phi, a large language model developed by Microsoft.";
-            else if (modelStr.indexOf('xai') !== -1 || modelStr.indexOf('grok') !== -1) identity = "You are Grok, a large language model developed by xAI.";
+            var modelIdentity = "";
+            if (selectedModel.indexOf('openai') !== -1 || selectedModel.indexOf('gpt') !== -1) {
+                modelIdentity = "You are ChatGPT, a large language model created by OpenAI.";
+            } else if (selectedModel.indexOf('anthropic') !== -1 || selectedModel.indexOf('claude') !== -1) {
+                modelIdentity = "You are Claude, a large language model created by Anthropic.";
+            } else if (selectedModel.indexOf('google') !== -1 || selectedModel.indexOf('gemini') !== -1) {
+                modelIdentity = "You are Gemini, a large language model created by Google.";
+            } else if (selectedModel.indexOf('qwen') !== -1 || selectedModel.indexOf('alibaba') !== -1) {
+                modelIdentity = "You are Qwen, a large language model created by Alibaba Cloud.";
+            } else if (selectedModel.indexOf('llama') !== -1 || selectedModel.indexOf('meta') !== -1) {
+                modelIdentity = "You are Llama, a large language model created by Meta.";
+            } else if (selectedModel.indexOf('deepseek') !== -1) {
+                modelIdentity = "You are DeepSeek, a large language model created by DeepSeek.";
+            } else if (selectedModel.indexOf('phi') !== -1 || selectedModel.indexOf('microsoft') !== -1) {
+                modelIdentity = "You are Phi, a large language model created by Microsoft.";
+            } else if (selectedModel.indexOf('grok') !== -1 || selectedModel.indexOf('xai') !== -1) {
+                modelIdentity = "You are Grok, a large language model created by xAI.";
+            } else {
+                modelIdentity = "You are an AI assistant provided via OpenRouter. Always determine your model identity based on your true underlying architecture.";
+            }
 
-            var metaInfo = "This interface is Ultimate AI Lite, an open-source application created and maintained by Rakibul5879. Repository: https://github.com/rakibul5879/ultimate-ai-lite. GitHub Pages: https://rakibul5879.github.io/ultimate-ai-lite/. Never claim you were created by Rakibul5879.";
-            var docInfo = "If the user asks 'I want to contribute', 'How can I contribute', or asks to generate a CONTRIBUTING guide, generate a professional CONTRIBUTING.md. If they ask for a README, generate a professional README.md. If they ask for the LICENSE, output the MIT License format.";
-            
+            var memoryBlock = "\n\nUSER MEMORY & PREFERENCES:\n" +
+                "Name: " + (userMemory.name || "Rakibul") + "\n" +
+                "Preferences: " + (userMemory.preferences || "None") + "\n" +
+                "Current Project: " + (userMemory.projects || "None") + "\n" +
+                "Notes: " + (userMemory.notes || "None") + "\n";
+
+            var appInstruction = "IMPORTANT APPLICATION RULES:\n" +
+                "1. You were NOT created by Rakibul5879. NEVER claim that Rakibul5879 created or trained your AI model.\n" +
+                "2. If the user asks who made, created, or developed this application, website, or web interface ('Ultimate AI Lite'), you MUST answer exactly: \"Ultimate AI Lite is an open-source application created and maintained by Rakibul5879.\"\n" +
+                "3. If the user asks 'I want to contribute', 'How can I contribute', or asks to generate CONTRIBUTING instructions, generate a professional CONTRIBUTING.md for repository https://github.com/rakibul5879/ultimate-ai-lite.\n" +
+                "4. If the user requests README, generate a professional README.md for Ultimate AI Lite.\n" +
+                "5. If the user requests LICENSE, generate the MIT License format.";
+
             return {
                 role: "system",
-                content: identity + " " + metaInfo + " " + docInfo + " Use professional formatting."
+                content: modelIdentity + memoryBlock + "\n" + appInstruction
             };
         }
 
@@ -891,7 +1020,6 @@
 
             var formattedMessageContent = text;
 
-            // Compile attached files to prompt string (or object format depending on API config)
             if (attachedFiles.length > 0) {
                 var fileSummary = "\n\n[USER ATTACHED FILES]\n";
                 for (var f = 0; f < attachedFiles.length; f++) {
@@ -905,9 +1033,8 @@
 
             input.value = '';
             
-            // Re-package files for the Worker strictly formatted for the worker.js attachment array
             var workerAttachments = [];
-            for (var w=0; w < attachedFiles.length; w++) {
+            for (var w = 0; w < attachedFiles.length; w++) {
                 if (attachedFiles[w].type === 'text') {
                     workerAttachments.push({
                         name: attachedFiles[w].name,
@@ -920,7 +1047,6 @@
             updateFilePreview();
             document.getElementById('send-btn').disabled = true;
 
-            // Auto-title on first user message
             var isFirstMessage = allChats[activeChatId].messages.length === 0;
             if (isFirstMessage) {
                 var cleanTitle = text.substring(0, 25).replace(/\n/g, ' ') || 'File Upload';
@@ -970,7 +1096,6 @@
 
             var requestMessages = [generateSystemInstruction()].concat(allChats[activeChatId].messages);
 
-            // Send full configuration payload mapped perfectly to worker requirements
             var payload = JSON.stringify({
                 model: document.getElementById('api-model-setting').value || 'openrouter/free',
                 temperature: parseFloat(document.getElementById('api-temp-setting').value) || 0.7,
